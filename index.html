@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meus Jogos • Home</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="./index.html">🎮 Meus Jogos</a>
+
+      <nav class="topbar__actions">
+        <button id="btnAddGame" class="btn btn--primary" type="button">Cadastrar jogo</button>
+        <a class="btn btn--ghost" href="./year.html?year=2025">Abrir 2025</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Seu histórico de jogos por ano</h1>
+      <p class="muted">Pesquise para ver se você já jogou/zerou algo — e entre no ano para ver os cards.</p>
+    </section>
+
+    <section class="panel">
+      <div class="searchRow">
+        <div class="searchBox">
+          <input id="homeSearch" class="input" type="search" placeholder="Buscar jogo (ex.: cyberpunk, sekiro, re4)..." autocomplete="off" />
+          <div id="homeSearchResults" class="searchResults" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="chipsRow">
+        <span class="label">Ano:</span>
+        <button class="chip chip--active" data-year="2025" type="button">2025</button>
+      </div>
+
+      <div class="hint">
+        Dica: clique no chip do ano para abrir o dashboard.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Resumo rápido (2025)</h2>
+      <div id="homeStats" class="statsGrid"></div>
+    </section>
+  </main>
+
+  <div id="modalRoot"></div>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>

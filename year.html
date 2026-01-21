@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meus Jogos • Ano</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="./index.html">🎮 Meus Jogos</a>
+
+      <div class="topbar__center">
+        <span id="yearTitle" class="pill">Ano</span>
+      </div>
+
+      <nav class="topbar__actions">
+        <button id="btnAddGame" class="btn btn--primary" type="button">Cadastrar jogo</button>
+        <a class="btn btn--ghost" href="./index.html">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <div class="toolbar">
+        <div class="searchBox">
+          <input id="yearSearch" class="input" type="search" placeholder="Pesquisar no ano..." autocomplete="off" />
+        </div>
+
+        <div class="filters">
+          <label class="label" for="sortSelect">Ordenar:</label>
+          <select id="sortSelect" class="select">
+            <option value="none">Padrão</option>
+            <option value="ratingDesc">Nota (desc)</option>
+            <option value="ratingAsc">Nota (cresc)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="yearStats" class="statsGrid"></div>
+    </section>
+
+    <section class="panel">
+      <div id="gamesGrid" class="grid"></div>
+      <div id="emptyState" class="emptyState hidden">
+        Nada encontrado com esse filtro/pesquisa.
+      </div>
+    </section>
+  </main>
+
+  <div id="modalRoot"></div>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>
