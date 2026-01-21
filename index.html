@@ -11,10 +11,10 @@
     <div class="topbar__inner">
       <a class="brand" href="./index.html">🎮 Meus Jogos</a>
 
-      <nav class="topbar__actions">
-        <button id="btnAddGame" class="btn btn--primary" type="button">Cadastrar jogo</button>
+    <nav class="topbar__actions">
+        <a class="btn btn--pending" href="./year.html?year=pendente">Pendente</a>
         <a class="btn btn--ghost" href="./year.html?year=2025">Abrir 2025</a>
-      </nav>
+    </nav>
     </div>
   </header>
 
@@ -35,6 +35,9 @@
       <div class="chipsRow">
         <span class="label">Ano:</span>
         <button class="chip chip--active" data-year="2025" type="button">2025</button>
+
+        <span class="label" style="margin-left:10px;">Filtro:</span>
+        <button class="chip chip--pending" data-status="pendente" type="button">Pendente</button>
       </div>
 
       <div class="hint">

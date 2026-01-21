@@ -245,7 +245,7 @@ a{ color: inherit; text-decoration: none; }
 
 .cover{
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 8;
   background: rgba(255,255,255,0.06);
   display:block;
   object-fit: cover;
@@ -392,4 +392,33 @@ a{ color: inherit; text-decoration: none; }
   outline: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
+}
+
+/* ===== PENDENTE (visual diferente) ===== */
+
+.btn--pending{
+  background: rgba(255, 190, 11, 0.14);
+  border-color: rgba(255, 190, 11, 0.35);
+}
+.btn--pending:hover{
+  background: rgba(255, 190, 11, 0.20);
+}
+
+/* chip pendente: dashed + glow leve */
+.chip--pending{
+  border-style: dashed;
+  border-color: rgba(255, 190, 11, 0.55);
+  background: rgba(255, 190, 11, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 190, 11, 0.10);
+}
+.chip--pending:hover{
+  background: rgba(255, 190, 11, 0.18);
+}
+
+/* status pendente no card: dashed + glow */
+.status--pendente{
+  border-style: dashed;
+  border-color: rgba(255, 190, 11, 0.55);
+  background: rgba(255, 190, 11, 0.10);
+  box-shadow: 0 0 12px rgba(255, 190, 11, 0.10);
 }

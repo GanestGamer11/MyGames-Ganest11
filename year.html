@@ -16,7 +16,7 @@
       </div>
 
       <nav class="topbar__actions">
-        <button id="btnAddGame" class="btn btn--primary" type="button">Cadastrar jogo</button>
+        <a class="btn btn--pending" href="./year.html?year=pendente">Pendente</a>
         <a class="btn btn--ghost" href="./index.html">Home</a>
       </nav>
     </div>
@@ -37,6 +37,12 @@
             <option value="ratingAsc">Nota (cresc)</option>
           </select>
         </div>
+      </div>
+
+      <div class="chipsRow" style="margin-top:12px;">
+        <span class="label">Filtro:</span>
+        <button class="chip chip--pending" data-status="pendente" type="button">Pendente</button>
+        <button class="chip" data-status="all" type="button">Todos</button>
       </div>
 
       <div id="yearStats" class="statsGrid"></div>

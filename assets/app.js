@@ -35,13 +35,6 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function slugify(str) {
-  return normalize(str)
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
-}
-
 function statusLabel(status) {
   const s = normalize(status);
   if (s === "zerado") return "ZERADO";
@@ -72,14 +65,14 @@ function gameMatchesQuery(game, query) {
 
 function sortGames(games, sortMode) {
   if (sortMode === "ratingAsc") {
-    return [...games].sort((a,b) => {
+    return [...games].sort((a, b) => {
       const ra = (a.rating ?? -1);
       const rb = (b.rating ?? -1);
       return ra - rb;
     });
   }
   if (sortMode === "ratingDesc") {
-    return [...games].sort((a,b) => {
+    return [...games].sort((a, b) => {
       const ra = (a.rating ?? -1);
       const rb = (b.rating ?? -1);
       return rb - ra;
@@ -93,6 +86,9 @@ function makeCard(game) {
   const rating = safeNumber(game.rating);
   const status = statusLabel(game.status);
 
+  const statusNorm = normalize(game.status);
+  const statusClass = (statusNorm === "pendente") ? "status--pendente" : "";
+
   const div = document.createElement("article");
   div.className = "card";
   div.innerHTML = `
@@ -100,7 +96,7 @@ function makeCard(game) {
     <div class="card__body">
       <h3 class="title">${escapeHtml(game.title)}</h3>
       <div class="card__footer">
-        <span class="status">${escapeHtml(status)}</span>
+        <span class="status ${statusClass}">${escapeHtml(status)}</span>
         <span class="rating ${ratingClass(rating)}"><span>${escapeHtml(ratingText(rating))}</span></span>
       </div>
     </div>
@@ -130,7 +126,8 @@ function buildStats(games) {
     { k: "Total", v: total },
     { k: "Zerados", v: zerados },
     { k: "Gaveta", v: gaveta },
-    { k: "Andamento/Pendente", v: andamento + pendente },
+    { k: "Andamento", v: andamento },
+    { k: "Pendentes", v: pendente },
   ];
 }
 
@@ -146,93 +143,6 @@ function renderStats(el, games) {
 }
 
 /* =========================
-   Modal: cadastro futuro (JSON helper)
-   ========================= */
-function openAddGameModal() {
-  const root = qs("#modalRoot");
-  if (!root) return;
-
-  const template = {
-    id: "ex.: " + slugify("Novo Jogo"),
-    title: "Novo Jogo",
-    coverUrl: "",
-    rating: null,
-    status: "pendente",
-    yearFinished: 2025,
-    meta: {
-      platform: "",
-      hours: null,
-      note: ""
-    }
-  };
-
-  root.innerHTML = `
-    <div class="modalBackdrop" role="dialog" aria-modal="true">
-      <div class="modal">
-        <div class="modal__head">
-          <strong>Cadastrar jogo (modo GitHub Pages)</strong>
-          <button class="btn btn--ghost" id="closeModal" type="button">Fechar</button>
-        </div>
-        <div class="modal__body">
-          <p class="muted" style="margin-top:0">
-            Por enquanto o cadastro é manual: copie o JSON abaixo e cole dentro do <code>data/games.json</code>.
-            (Depois dá pra evoluir pra gerar arquivo/commit local, etc.)
-          </p>
-
-          <div class="modal__grid">
-            <div>
-              <label class="label">Template do jogo</label>
-              <textarea id="jsonTemplate" class="textarea">${escapeHtml(JSON.stringify(template, null, 2))}</textarea>
-              <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
-                <button id="btnCopyJson" class="btn btn--primary" type="button">Copiar JSON</button>
-                <button id="btnNewId" class="btn" type="button">Gerar id pelo título</button>
-              </div>
-            </div>
-
-            <div>
-              <label class="label">Dica rápida</label>
-              <div class="panel" style="margin-top:8px">
-                <ul style="margin:0; padding-left:18px; color: rgba(255,255,255,0.75);">
-                  <li><b>status</b>: "zerado", "gaveta", "em andamento", "pendente"</li>
-                  <li><b>rating</b>: 0 a 10 (10 fica shiny)</li>
-                  <li><b>yearFinished</b>: ano que você zerou / decidiu gaveta</li>
-                  <li><b>meta</b>: campos livres (platform, hours, etc.)</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const close = () => { root.innerHTML = ""; };
-  qs("#closeModal")?.addEventListener("click", close);
-  root.querySelector(".modalBackdrop")?.addEventListener("click", (e) => {
-    if (e.target.classList.contains("modalBackdrop")) close();
-  });
-
-  qs("#btnCopyJson")?.addEventListener("click", async () => {
-    const t = qs("#jsonTemplate")?.value ?? "";
-    try { await navigator.clipboard.writeText(t); } catch {}
-  });
-
-  qs("#btnNewId")?.addEventListener("click", () => {
-    const ta = qs("#jsonTemplate");
-    if (!ta) return;
-    try {
-      const obj = JSON.parse(ta.value);
-      obj.id = slugify(obj.title || "novo-jogo");
-      ta.value = JSON.stringify(obj, null, 2);
-    } catch {}
-  });
-}
-
-function bindAddButtons() {
-  qsa("#btnAddGame").forEach(btn => btn.addEventListener("click", openAddGameModal));
-}
-
-/* =========================
    Home
    ========================= */
 async function initHome() {
@@ -242,15 +152,24 @@ async function initHome() {
 
   const data = await loadData();
 
-  // Resumo: tudo que é 2025 (zerado ou gaveta etc.)
-  const homeGames = data.games.filter(g => (g.yearFinished === 2025) || normalize(g.status) === "gaveta");
-  renderStats(statsEl, homeGames);
+  // Resumo rápido: pode ser geral (todos os jogos)
+  renderStats(statsEl, data.games);
 
-  // Chip navigation
+  // Chip navigation (ano)
   qsa(".chip[data-year]").forEach(btn => {
     btn.addEventListener("click", () => {
       const y = btn.getAttribute("data-year");
       window.location.href = `./year.html?year=${encodeURIComponent(y)}`;
+    });
+  });
+
+  // Chip pendente (backlog)
+  qsa(".chip[data-status]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const status = normalize(btn.getAttribute("data-status"));
+      if (status === "pendente") {
+        window.location.href = `./year.html?year=pendente`;
+      }
     });
   });
 
@@ -270,7 +189,7 @@ async function initHome() {
 
     results.innerHTML = items.slice(0, 10).map(g => {
       const tag = statusLabel(g.status);
-      const year = g.yearFinished ?? "—";
+      const year = (g.yearFinished === null || g.yearFinished === undefined) ? "—" : g.yearFinished;
       return `
         <div class="item" data-id="${escapeHtml(g.id)}">
           <span>${escapeHtml(g.title)}</span>
@@ -287,6 +206,12 @@ async function initHome() {
         const game = data.games.find(x => x.id === id);
         if (!game) return;
 
+        const st = normalize(game.status);
+        if (st === "pendente") {
+          window.location.href = `./year.html?year=pendente&q=${encodeURIComponent(game.title)}`;
+          return;
+        }
+
         const y = game.yearFinished ?? 2025;
         window.location.href = `./year.html?year=${encodeURIComponent(y)}&q=${encodeURIComponent(game.title)}`;
       });
@@ -298,7 +223,7 @@ async function initHome() {
     if (!q) { closeResults(); return; }
     const matches = data.games
       .filter(g => gameMatchesQuery(g, q))
-      .sort((a,b) => normalize(a.title).localeCompare(normalize(b.title)));
+      .sort((a, b) => normalize(a.title).localeCompare(normalize(b.title)));
     openResults(matches);
   }
 
@@ -312,11 +237,18 @@ async function initHome() {
 }
 
 /* =========================
-   Year page
+   Year / Backlog page
+   year=2025 -> jogos do ano
+   year=pendente -> backlog pendente (sem ano)
    ========================= */
 async function initYear() {
-  const year = Number(getParam("year") ?? "2025");
-  const qParam = normalize(getParam("q") ?? "");
+  const rawYear = getParam("year") ?? "2025";
+  const isBacklog = normalize(rawYear) === "pendente";
+  const year = isBacklog ? null : Number(rawYear);
+
+  const qParam = normalize(getParam("q") ?? ""); // <-- CORRIGE o erro
+  // Se você ainda tiver chips de filtro no year.html, isso controla (opcional):
+  let activeStatus = "all"; // <-- evita ReferenceError caso chips existam
 
   const title = qs("#yearTitle");
   const search = qs("#yearSearch");
@@ -325,10 +257,13 @@ async function initYear() {
   const empty = qs("#emptyState");
   const statsEl = qs("#yearStats");
 
-  if (title) title.textContent = `Ano ${year}`;
+  if (title) title.textContent = isBacklog ? "Pendente (Backlog)" : `Ano ${year}`;
 
   const data = await loadData();
-  const base = data.games.filter(g => Number(g.yearFinished) === year);
+
+  const baseAll = isBacklog
+    ? data.games.filter(g => normalize(g.status) === "pendente")
+    : data.games.filter(g => Number(g.yearFinished) === year);
 
   // Prefill search from query param (ex.: vindo da home)
   if (search && qParam) search.value = qParam;
@@ -337,7 +272,14 @@ async function initYear() {
     const query = normalize(search?.value);
     const sortMode = sortSelect?.value ?? "none";
 
-    let items = base.filter(g => gameMatchesQuery(g, query));
+    let items = baseAll;
+
+    // Se tiver chips de status no year.html, isso filtra (no backlog dá na mesma)
+    if (activeStatus && activeStatus !== "all") {
+      items = items.filter(g => normalize(g.status) === activeStatus);
+    }
+
+    items = items.filter(g => gameMatchesQuery(g, query));
     items = sortGames(items, sortMode);
 
     renderStats(statsEl, items);
@@ -357,6 +299,14 @@ async function initYear() {
   search?.addEventListener("input", render);
   sortSelect?.addEventListener("change", render);
 
+  // Se você adicionou chips de filtro no year.html, isso ativa
+  qsa(".chip[data-status]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeStatus = normalize(btn.getAttribute("data-status"));
+      render();
+    });
+  });
+
   render();
 }
 
@@ -365,8 +315,6 @@ async function initYear() {
    ========================= */
 (async function boot() {
   try {
-    bindAddButtons();
-
     const isHome = !!qs("#homeSearch");
     const isYear = !!qs("#gamesGrid");
 
